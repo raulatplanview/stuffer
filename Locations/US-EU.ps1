@@ -9,30 +9,30 @@ $f5Credentials = $vSphereCredentials
 <# SETTING REGIONAL OPTIONS #>
 switch($option) {
 
-    1 {$jumpbox = "sgcvmrdp02.us.planview.world"; 
+    1 {
         $ad_server = "SGCVMADC12.us.planview.world";
         $vSphereServer = "sgivmvcsvr06.us.planview.world"; 
         $dataCenterLocation = "sg"; 
         $reportFarm = "https://usreportfarm03.pvcloud.com/ReportServer";
         $f5ip = "10.132.81.2";
-        break}
+        break
+    } 
 
-    2 {$jumpbox = "sgcvmrdp02.us.planview.world"; 
+    2 {
         $ad_server = "LNCVMADC05.eu.planview.world"; 
         $vSphereServer = "lnivmvcsvr06.eu.planview.world"; 
         $dataCenterLocation = "ln"; 
         $reportFarm = "https://eureportfarm03.pvcloud.com/ReportServer";
         $f5ip = "10.60.2.171";
-        break}
+        break
+    }
 
 }
-
 
 <# COLLECTING AD OBJECTS #>
 Write-Host "Connecting to Active Directory..." -ForegroundColor Gray
 $AD_OU = Get-ADOrganizationalUnit -Filter { Name -like $customerName } -Server $ad_server
 $distinguishedNames = (Get-ADComputer -Filter * -SearchBase "$($AD_OU.DistinguishedName)" -Server $ad_server).DistinguishedName
-
 
 <# SETTING ENVIRONMENTS/SERVERS #>
 $environments = @{}
@@ -64,9 +64,5 @@ foreach ($server in $distinguishedNames) {
 
 }
 
-<# OPEN JUMPBOX SESSION #>
-$session = New-PSSession -ComputerName $jumpbox -Authentication Credssp -Credential $credentials
-
-
-<# TO 'GATHER DATA' #>
-. "$($stufferDirectory)\Gather Data\Main.ps1" $session $environments $ad_server $dataCenterLocation $reportFarm $f5ip $domain $f5Credentials $vSphereCredentials $vSphereServer
+<# TO 'Logic' #>
+. "$($stufferDirectory)\Logic\US-EU Array.ps1" $environments $ad_server $dataCenterLocation $reportFarm $f5ip $f5Credentials $vSphereCredentials $vSphereServer
