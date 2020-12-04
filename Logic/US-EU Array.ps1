@@ -12,8 +12,8 @@ foreach ($e in $environments){
     Write-Host "$(($e.Value).TrimEnd(',').Split(',') | Sort-Object) `n" -ForegroundColor Yellow
 
 }
-
-<# VSPHERE #>
+$environmentsMaster = @()
+<# VSPHERE 
 $environmentsMaster = @()
 Connect-VIServer -Server $vSphereServer -Credential $vSphereCredentials
 
@@ -54,9 +54,7 @@ foreach ($e in $environments){
     $environmentsMaster += @(,($environment.Value))
 
 } 
+#>
 
-$environmentsMaster
-
-<# EXCEL FILE #>
-#Get-ChildItem -Path "C:\Users\$($admin)\Planview, Inc\E1 Build Cutover - Documents\Customer Builds\1_FolderTemplate\18\" -Filter "InPlace*" | Copy-Item -Destination "C:\Users\$($admin)\Desktop"
-#$excelFilePath = Get-ChildItem -Path "C:\Users\$($admin)\Desktop\" -Filter "InPlace*" | ForEach-Object {$_.FullName}
+<# TO 'Logic' #>
+. "$($stufferDirectory)\Logic\TEMPORARY\Excel Logic.ps1" $environmentsMaster $aAdmin
