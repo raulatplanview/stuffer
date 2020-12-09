@@ -1,7 +1,3 @@
-#Import-Module \\scripthost\modules\pvadmin
-#Import-Module SQLSERVER
-#Import-Module F5-LTM
-
 <# AT A GLANCE #> 
 $environments = $environments.GetEnumerator() | Sort-Object -Property Name
 
@@ -12,10 +8,10 @@ foreach ($e in $environments){
     Write-Host "$(($e.Value).TrimEnd(',').Split(',') | Sort-Object) `n" -ForegroundColor Yellow
 
 }
+
+<# VSPHERE #>
 $environmentsMaster = @()
-<# VSPHERE 
-$environmentsMaster = @()
-Connect-VIServer -Server $vSphereServer -Credential $vSphereCredentials
+#Connect-VIServer -Server $vSphereServer -Credential $vSphereCredentials
 
 foreach ($e in $environments){
     
@@ -54,7 +50,7 @@ foreach ($e in $environments){
     $environmentsMaster += @(,($environment.Value))
 
 } 
-#>
+
 
 <# TO 'Logic' #>
-. "$($stufferDirectory)\Logic\TEMPORARY\Excel Logic.ps1" $environmentsMaster $aAdmin
+. "$($stufferDirectory)\Logic\TEMPORARY\Excel Logic.ps1" $environmentsMaster $aAdmin $customerCode $dataCenterLocation $AD_OU $customerName $credentials

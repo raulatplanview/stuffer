@@ -15,9 +15,9 @@ if ($stufferType -eq 1) {
 }
 else {
 
-    $option = "1" #Read-Host "Select a region: 1-SG or 2-LN"
-    $customerName = "RRR: Really Really Ready DEV Exclude" #Read-Host "Enter the customer OU name"
-    $customerCode = "rrr" #Read-Host "Enter the customer code"
+    $option = "2" #Read-Host "Select a region: 1-SG or 2-LN"
+    $customerName = "PRIM: Primark Ireland" #Read-Host "Enter the customer OU name"
+    $customerCode = "pki" #Read-Host "Enter the customer code"
 
     . "$($stufferDirectory)\Locations\US-EU.ps1" $stufferDirectory $admin $option $customerName $customerCode
 }
