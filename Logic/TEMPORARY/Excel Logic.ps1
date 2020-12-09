@@ -55,7 +55,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     Write-Host "Server CPUs: $($environmentsMaster[$x][$y][0].NumCpu)"
                     Write-Host "Server RAM: $($environmentsMaster[$x][$y][0].MemoryGB)"
 
-                    <# HARDDRIVES #>
+                    <# HARDDRIVES #> 
                     Write-Host "Disks and Disk Capacity" -ForegroundColor Red
                     $diskResize = "Yes"
                     $hdStringArray = ""
@@ -75,8 +75,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                     <# SCHEDULED TASKS #>
                     Write-Host "Scheduled Tasks on Server" -ForegroundColor Red
-                    $tasks = Invoke-Command -computer $environmentsMaster[$x][$y][0].Name -ScriptBlock {
-                        Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | where TaskName -notlike "Op*" 
+                    $tasks = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -ScriptBlock {
+                        Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | Where-Object TaskName -notlike "Op*" 
                     } -Credential $credentials
 
                     $task_array = ""
@@ -106,33 +106,51 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     <# INTEGRATIONS #>
                     Write-Host "Integrations" -ForegroundColor Red
                     $PPAdapter = "False"
-                    $LKAdapter = "False"
+                    $PRMAdapter = "False"
+
                     $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
-                        param ($database)
-                        if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($database)\*") {
-                            Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($database)\*" | Select-Object -Property PSChildName
+                        if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*") {
+
+                            $databaseNames = Get-ChildItem -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*" -Name 
+        
+                            $mainDatabase = ""
+                            foreach ($db in $databaseNames) {
+                                if (($db -like "*PROD") -or ($db -like "*DEV*")) {
+                                    $mainDatabase = $db
+                                }
+                            }
+
+                            Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($mainDatabase)\*" | Select-Object -Property PSChildName
+                        
                         } else {
                             return 0
                         }
-                    } -ArgumentList $productionDatabase
+                    }
 
+                    <#
                     if ($integrations -eq 0) {
-                        Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($productionDatabase)\'"
+
+                        Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations'"
+
                     } else {
+
                         Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
+
                         foreach ($x in $integrations.PSChildName) {
                             if ($x -like "*ProjectPlace*") {
                                 Write-Host "PP ADAPTER FOUND: $($x)"
                                 $PPAdapter = "True"
                             }
                             elseif ($x -like "*PRM_Adapter*") {
-                                Write-Host "LK ADAPTER FOUND: $($x)"
-                                $LKAdapter= "True"
+                                Write-Host "PRM ADAPTER FOUND: $($x)"
+                                $PRMAdapter= "True"
                             } else {
                                 Write-Host "Other Integration Identified: $($x)"
                             }
                         }
+
                     }
+                    #>
 
                     <# EXCEL LOGIC AND VARIABLES#>
                     $buildData.Cells.Item(52,2)= "$($environmentsMaster[$x][$y][0].Name)"
@@ -143,7 +161,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     $buildData.Cells.Item(52,7)= $task_array
 
                     $buildData.Cells.Item(31,2)= $PPAdapter
-                    $buildData.Cells.Item(32,2)= $LKAdapter
+                    $buildData.Cells.Item(37,2)= $PRMAdapter
 
                     $buildData.Cells.Item(36,2)= $opensuite
 
@@ -182,8 +200,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                     <# SCHEDULED TASKS #>
                     Write-Host "Scheduled Tasks on Server" -ForegroundColor Red
-                    $tasks = Invoke-Command -computer $environmentsMaster[$x][$y][0].Name -ScriptBlock {
-                        Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | where TaskName -notlike "Op*" 
+                    $tasks = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -ScriptBlock {
+                        Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | Where-Object TaskName -notlike "Op*" 
                     } -Credential $credentials
 
                     $task_array = ""
@@ -237,8 +255,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                 <# SCHEDULED TASKS #>
                 Write-Host "Scheduled Tasks on Server" -ForegroundColor Red
-                $tasks = Invoke-Command -computer $environmentsMaster[$x][$y][0].Name -ScriptBlock {
-                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | where TaskName -notlike "Op*" 
+                $tasks = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -ScriptBlock {
+                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | Where-Object TaskName -notlike "Op*" 
                 } -Credential $credentials
 
                 $task_array = ""
@@ -396,8 +414,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                 <# SCHEDULED TASKS #>
                 Write-Host "Scheduled Tasks on Server" -ForegroundColor Red
-                $tasks = Invoke-Command -computer $environmentsMaster[$x][$y][0].Name -ScriptBlock {
-                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | where TaskName -notlike "Op*" 
+                $tasks = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -ScriptBlock {
+                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | Where-Object TaskName -notlike "Op*" 
                 } -Credential $credentials
 
                 $task_array = ""
@@ -449,8 +467,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                 <# SCHEDULED TASKS #>
                 Write-Host "Scheduled Tasks on Server" -ForegroundColor Red
-                $tasks = Invoke-Command -computer $environmentsMaster[$x][$y][0].Name -ScriptBlock {
-                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | where TaskName -notlike "Op*" 
+                $tasks = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -ScriptBlock {
+                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | Where-Object TaskName -notlike "Op*" 
                 } -Credential $credentials
 
                 $task_array = ""
@@ -461,7 +479,28 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                 <# DATABASE PROPERTIES #>
                 Write-Host "Database Properties" -ForegroundColor Red
-                $sqlSession = New-PSSession -ComputerName "$($environmentsMaster[$x][$y][0].Name)" -Credential $credentials
+                $sqlSession = New-PSSession -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials
+
+                    # ALL DATABASES (NAMES AND SIZES in MB)
+                    $mainDatabase = ""
+                    Write-Host "Listing All Databases and Sizes (in MB)" -ForegroundColor Cyan
+                    $all_databases = Invoke-Command -Session $sqlSession -ScriptBlock { 
+                        param ($server, $mainDatabase)        
+                        Invoke-Sqlcmd -Query "SELECT d.name,
+                        ROUND(SUM(mf.size) * 8 / 1024, 0) Size_MB
+                        FROM sys.master_files mf
+                        INNER JOIN sys.databases d ON d.database_id = mf.database_id
+                        WHERE d.database_id > 4 -- Skip system databases
+                        GROUP BY d.name
+                        ORDER BY d.name" -ServerInstance $server.Name 
+                    } -ArgumentList $environmentsMaster[$x][$y][0].Name, $mainDatabase
+                    foreach ($database in $all_databases) {
+                        Write-Host "$($database.name) ---- $($database.Size_MB) MB"
+                        if (($database.name -like "*PROD") -or ($database.name -like "*DEV*")) {
+                            $mainDatabase = $database.name
+                        }
+                    }
+                    Write-Host "$($mainDatabase) is the main database!`n" -Foregroundcolor green
 
                     # MAXDOP/THRESHOLD
                     Write-Host "Identifying MaxDOP/Threshold..." -ForegroundColor Cyan
@@ -500,29 +539,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                             ON db.database_id = dm.database_id;
                         GO" -ServerInstance $server 
                     } -ArgumentList $environmentsMaster[$x][$y][0].Name
-                    $dbEncryption = $database_encryption | Where-Object {$_.name -eq $productionDatabase}
+                    $dbEncryption = $database_encryption | Where-Object {$_.name -eq $mainDatabase}
                     Write-Host "$($dbEncryption.name) --- $($dbEncryption.is_encrypted)"
-                    
-                    # ALL DATABASES (NAMES AND SIZES in MB)
-                    $mainDatabase = ""
-                    Write-Host "Listing All Databases and Sizes (in MB)" -ForegroundColor Cyan
-                    $all_databases = Invoke-Command -Session $sqlSession -ScriptBlock { 
-                        param ($server, $mainDatabase)        
-                        Invoke-Sqlcmd -Query "SELECT d.name,
-                        ROUND(SUM(mf.size) * 8 / 1024, 0) Size_MB
-                        FROM sys.master_files mf
-                        INNER JOIN sys.databases d ON d.database_id = mf.database_id
-                        WHERE d.database_id > 4 -- Skip system databases
-                        GROUP BY d.name
-                        ORDER BY d.name" -ServerInstance $server.Name 
-                    } -ArgumentList $environmentsMaster[$x][$y][0].Name, $mainDatabase
-                    foreach ($database in $all_databases) {
-                        Write-Host "$($database.name) ---- $($database.Size_MB) MB"
-                        if (($database.name -like "*PROD") -or ($database.name -like "*DEV*")) {
-                            $mainDatabase = $database.name
-                        }
-                    }
-                    Write-Host "$($mainDatabase) is the main database!`n" -Foregroundcolor green
 
                     # DATABASE SIZE (MAIN)
                     Write-Host "Calculating Database Size" -ForegroundColor Cyan
@@ -710,8 +728,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                 <# SCHEDULED TASKS #>
                 Write-Host "Scheduled Tasks on Server" -ForegroundColor Red
-                $tasks = Invoke-Command -computer $environmentsMaster[$x][$y][0].Name -ScriptBlock {
-                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | where TaskName -notlike "Op*" 
+                $tasks = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -ScriptBlock {
+                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | Where-Object TaskName -notlike "Op*" 
                 } -Credential $credentials
 
                 $task_array = ""
@@ -753,7 +771,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 <# INTEGRATIONS #>
                 Write-Host "Integrations" -ForegroundColor Red
                 $PPAdapter = "False"
-                $LKAdapter = "False"
+                $PRMAdapter = "False"
                 $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
                     param ($database)
                     if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($database)\*") {
@@ -774,7 +792,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                         }
                         elseif ($x -like "*PRM_Adapter*") {
                             Write-Host "LK ADAPTER FOUND: $($x)"
-                            $LKAdapter= "True"
+                            $PRMAdapter= "True"
                         } else {
                             Write-Host "Other Integration Identified: $($x)"
                         }
@@ -867,7 +885,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 
 
                 $buildData.Cells.Item(31,2)= $PPAdapter
-                $buildData.Cells.Item(32,2)= $LKAdapter
+                $buildData.Cells.Item(37,2)= $PRMAdapter
                 
                 
 
@@ -927,8 +945,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
         
                     <# SCHEDULED TASKS #>
                     Write-Host "Scheduled Tasks on Server" -ForegroundColor Red
-                    $tasks = Invoke-Command -computer $environmentsMaster[$x][$y][0].Name -ScriptBlock {
-                        Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | where TaskName -notlike "Op*" 
+                    $tasks = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -ScriptBlock {
+                        Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | Where-Object TaskName -notlike "Op*" 
                     } -Credential $credentials
 
                     $task_array = ""
@@ -958,7 +976,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     <# INTEGRATIONS #>
                     Write-Host "Integrations" -ForegroundColor Red
                     $PPAdapter = "False"
-                    $LKAdapter = "False"
+                    $PRMAdapter = "False"
                     $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
                         param ($database)
                         if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($database)\*") {
@@ -979,7 +997,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                             }
                             elseif ($x -like "*PRM_Adapter*") {
                                 Write-Host "LK ADAPTER FOUND: $($x)"
-                                $LKAdapter= "True"
+                                $PRMAdapter= "True"
                             } else {
                                 Write-Host "Other Integration Identified: $($x)"
                             }
@@ -995,7 +1013,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     $buildData.Cells.Item(72,7)= $task_array
         
                     $buildData.Cells.Item(31,3)= $PPAdapter
-                    $buildData.Cells.Item(32,3)= $LKAdapter
+                    $buildData.Cells.Item(37,3)= $PRMAdapter
                     
                     $buildData.Cells.Item(36,3)= $opensuite
         
@@ -1034,8 +1052,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
         
                     <# SCHEDULED TASKS #>
                     Write-Host "Scheduled Tasks on Server" -ForegroundColor Red
-                    $tasks = Invoke-Command -computer $environmentsMaster[$x][$y][0].Name -ScriptBlock {
-                        Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | where TaskName -notlike "Op*" 
+                    $tasks = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -ScriptBlock {
+                        Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | Where-Object TaskName -notlike "Op*" 
                     } -Credential $credentials
 
                     $task_array = ""
@@ -1088,8 +1106,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
         
                 <# SCHEDULED TASKS #>
                 Write-Host "Scheduled Tasks on Server" -ForegroundColor Red
-                $tasks = Invoke-Command -computer $environmentsMaster[$x][$y][0].Name -ScriptBlock {
-                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | where TaskName -notlike "Op*" 
+                $tasks = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -ScriptBlock {
+                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | Where-Object TaskName -notlike "Op*" 
                 } -Credential $credentials
 
                 $task_array = ""
@@ -1232,8 +1250,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
         
                 <# SCHEDULED TASKS #>
                 Write-Host "Scheduled Tasks on Server" -ForegroundColor Red
-                $tasks = Invoke-Command -computer $environmentsMaster[$x][$y][0].Name -ScriptBlock {
-                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | where TaskName -notlike "Op*" 
+                $tasks = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -ScriptBlock {
+                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | Where-Object TaskName -notlike "Op*" 
                 } -Credential $credentials
 
                 $task_array = ""
@@ -1285,8 +1303,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
         
                 <# SCHEDULED TASKS #>
                 Write-Host "Scheduled Tasks on Server" -ForegroundColor Red
-                $tasks = Invoke-Command -computer $environmentsMaster[$x][$y][0].Name -ScriptBlock {
-                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | where TaskName -notlike "Op*" 
+                $tasks = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -ScriptBlock {
+                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | Where-Object TaskName -notlike "Op*" 
                 } -Credential $credentials
 
                 $task_array = ""
@@ -1297,8 +1315,29 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 
                 <# DATABASE PROPERTIES #>
                 Write-Host "Database Properties" -ForegroundColor Red
-                $sqlSession = New-PSSession -ComputerName "$($environmentsMaster[$x][$y][0].Name)" -Credential $credentials
-        
+                $sqlSession = New-PSSession -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials
+                    
+                    # ALL DATABASES (NAMES AND SIZES in MB)
+                    $mainDatabase = ""
+                    Write-Host "Listing All Databases and Sizes (in MB)" -ForegroundColor Cyan
+                    $all_databases = Invoke-Command -Session $sqlSession -ScriptBlock { 
+                        param ($server, $mainDatabase)        
+                        Invoke-Sqlcmd -Query "SELECT d.name,
+                        ROUND(SUM(mf.size) * 8 / 1024, 0) Size_MB
+                        FROM sys.master_files mf
+                        INNER JOIN sys.databases d ON d.database_id = mf.database_id
+                        WHERE d.database_id > 4 -- Skip system databases
+                        GROUP BY d.name
+                        ORDER BY d.name" -ServerInstance $server.Name 
+                    } -ArgumentList $environmentsMaster[$x][$y][0].Name, $mainDatabase
+                    foreach ($database in $all_databases) {
+                        Write-Host "$($database.name) ---- $($database.Size_MB) MB"
+                        if (($database.name -like "*SANDBOX1") -or ($database.name -like "*DEV*")) {
+                            $mainDatabase = $database.name
+                        }
+                    }
+                    Write-Host "$($mainDatabase) is the main database!`n" -Foregroundcolor green
+
                     # MAXDOP/THRESHOLD
                     Write-Host "Identifying MaxDOP/Threshold..." -ForegroundColor Cyan
                     $database_maxdop_threshold = Invoke-Command  -Session $sqlSession -ScriptBlock { 
@@ -1336,29 +1375,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                             ON db.database_id = dm.database_id;
                         GO" -ServerInstance $server 
                     } -ArgumentList $environmentsMaster[$x][$y][0].Name
-                    $dbEncryption = $database_encryption | Where-Object {$_.name -eq $sandboxDatabase}
+                    $dbEncryption = $database_encryption | Where-Object {$_.name -eq $mainDatabase}
                     Write-Host "$($dbEncryption.name) --- $($dbEncryption.is_encrypted)"
-        
-                    # ALL DATABASES (NAMES AND SIZES in MB)
-                    $mainDatabase = ""
-                    Write-Host "Listing All Databases and Sizes (in MB)" -ForegroundColor Cyan
-                    $all_databases = Invoke-Command -Session $sqlSession -ScriptBlock { 
-                        param ($server, $mainDatabase)        
-                        Invoke-Sqlcmd -Query "SELECT d.name,
-                        ROUND(SUM(mf.size) * 8 / 1024, 0) Size_MB
-                        FROM sys.master_files mf
-                        INNER JOIN sys.databases d ON d.database_id = mf.database_id
-                        WHERE d.database_id > 4 -- Skip system databases
-                        GROUP BY d.name
-                        ORDER BY d.name" -ServerInstance $server.Name 
-                    } -ArgumentList $environmentsMaster[$x][$y][0].Name, $mainDatabase
-                    foreach ($database in $all_databases) {
-                        Write-Host "$($database.name) ---- $($database.Size_MB) MB"
-                        if (($database.name -like "*SANDBOX1") -or ($database.name -like "*DEV*")) {
-                            $mainDatabase = $database.name
-                        }
-                    }
-                    Write-Host "$($mainDatabase) is the main database!`n" -Foregroundcolor green
 
                     # DATABASE SIZE (MAIN)
                     Write-Host "Calculating Database Size" -ForegroundColor Cyan
@@ -1546,8 +1564,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
         
                 <# SCHEDULED TASKS #>
                 Write-Host "Scheduled Tasks on Server" -ForegroundColor Red
-                $tasks = Invoke-Command -computer $environmentsMaster[$x][$y][0].Name -ScriptBlock {
-                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | where TaskName -notlike "Op*" 
+                $tasks = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -ScriptBlock {
+                    Get-ScheduledTask -TaskPath "\" | Select-Object -Property TaskName, LastRunTime | Where-Object TaskName -notlike "Op*" 
                 } -Credential $credentials
 
                 $task_array = ""
@@ -1589,7 +1607,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 <# INTEGRATIONS #>
                 Write-Host "Integrations" -ForegroundColor Red
                 $PPAdapter = "False"
-                $LKAdapter = "False"
+                $PRMAdapter = "False"
                 $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
                     param ($database)
                     if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($database)\*") {
@@ -1610,7 +1628,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                         }
                         elseif ($x -like "*PRM_Adapter*") {
                             Write-Host "LK ADAPTER FOUND: $($x)"
-                            $LKAdapter= "True"
+                            $PRMAdapter= "True"
                         } else {
                             Write-Host "Other Integration Identified: $($x)"
                         }
@@ -1694,7 +1712,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 $buildData.Cells.Item(76,7)= $task_array
         
                 $buildData.Cells.Item(31,3)= $PPAdapter
-                $buildData.Cells.Item(32,3)= $LKAdapter
+                $buildData.Cells.Item(37,3)= $PRMAdapter
         
                 Write-Host "`n" -ForegroundColor Red  
             }
