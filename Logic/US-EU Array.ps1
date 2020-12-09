@@ -11,7 +11,7 @@ foreach ($e in $environments){
 
 <# VSPHERE #>
 $environmentsMaster = @()
-#Connect-VIServer -Server $vSphereServer -Credential $vSphereCredentials
+Connect-VIServer -Server $vSphereServer -Credential $vSphereCredentials
 
 foreach ($e in $environments){
     
@@ -23,7 +23,7 @@ foreach ($e in $environments){
     $environment =  Get-Variable -Name $environmentName
     $environment.Value += @(($environment.Name))
 
-    Write-Host "$($environmentName) Environment-------------------------" -ForegroundColor Red
+    Write-Host "`n$($environmentName) Environment-------------------------" -ForegroundColor Red
     
     foreach ($serverName in $servers) {
         
