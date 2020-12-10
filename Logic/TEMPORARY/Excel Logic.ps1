@@ -495,7 +495,9 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     foreach ($database in $all_databases) {
                         Write-Host "$($database.name) ---- $($database.Size_MB) MB"
                         if (($database.name -like "*PROD") -or ($database.name -like "*DEV*")) {
-                            $mainDatabase = $database.name
+                            if ($database.name -notlike "DM*") {
+                                $mainDatabase = $database.name
+                            }
                         }
                     }
                     Write-Host "$($mainDatabase) is the main database!`n" -Foregroundcolor green
@@ -1365,7 +1367,9 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     foreach ($database in $all_databases) {
                         Write-Host "$($database.name) ---- $($database.Size_MB) MB"
                         if (($database.name -like "*SANDBOX1") -or ($database.name -like "*DEV*")) {
-                            $mainDatabase = $database.name
+                            if ($database.name -notlike "DM*") {
+                                $mainDatabase = $database.name
+                            }
                         }
                     }
                     Write-Host "$($mainDatabase) is the main database!`n" -Foregroundcolor green
