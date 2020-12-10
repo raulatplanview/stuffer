@@ -127,7 +127,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                         }
                     }
 
-                    <#
+                    
                     if ($integrations -eq 0) {
 
                         Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations'"
@@ -135,9 +135,9 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     } else {
 
                         Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
-
+                        
                         foreach ($x in $integrations.PSChildName) {
-                            if ($x -like "*ProjectPlace*") {
+                          <#  if ($x -like "*ProjectPlace*") {
                                 Write-Host "PP ADAPTER FOUND: $($x)"
                                 $PPAdapter = "True"
                             }
@@ -146,11 +146,11 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                                 $PRMAdapter= "True"
                             } else {
                                 Write-Host "Other Integration Identified: $($x)"
-                            }
-                        }
+                            }  #> 
+                        } 
 
                     }
-                    #>
+                    
 
                     <# EXCEL LOGIC AND VARIABLES#>
                     $buildData.Cells.Item(52,2)= "$($environmentsMaster[$x][$y][0].Name)"
@@ -770,34 +770,51 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                 <# INTEGRATIONS #>
                 Write-Host "Integrations" -ForegroundColor Red
-                $PPAdapter = "False"
-                $PRMAdapter = "False"
-                $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
-                    param ($database)
-                    if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($database)\*") {
-                        Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($database)\*" | Select-Object -Property PSChildName
-                    } else {
-                        return 0
-                    }
-                } -ArgumentList $productionDatabase
+                    $PPAdapter = "False"
+                    $PRMAdapter = "False"
 
-                if ($integrations -eq 0) {
-                    Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($productionDatabase)\'"
-                } else {
-                    Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
-                    foreach ($x in $integrations.PSChildName) {
-                        if ($x -like "*ProjectPlace*") {
-                            Write-Host "PP ADAPTER FOUND: $($x)"
-                            $PPAdapter = "True"
-                        }
-                        elseif ($x -like "*PRM_Adapter*") {
-                            Write-Host "LK ADAPTER FOUND: $($x)"
-                            $PRMAdapter= "True"
+                    $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
+                        if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*") {
+
+                            $databaseNames = Get-ChildItem -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*" -Name 
+        
+                            $mainDatabase = ""
+                            foreach ($db in $databaseNames) {
+                                if (($db -like "*PROD") -or ($db -like "*DEV*")) {
+                                    $mainDatabase = $db
+                                }
+                            }
+
+                            Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($mainDatabase)\*" | Select-Object -Property PSChildName
+                        
                         } else {
-                            Write-Host "Other Integration Identified: $($x)"
+                            return 0
                         }
                     }
-                }
+
+                    
+                    if ($integrations -eq 0) {
+
+                        Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations'"
+
+                    } else {
+
+                        Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
+                        
+                        foreach ($x in $integrations.PSChildName) {
+                          <#  if ($x -like "*ProjectPlace*") {
+                                Write-Host "PP ADAPTER FOUND: $($x)"
+                                $PPAdapter = "True"
+                            }
+                            elseif ($x -like "*PRM_Adapter*") {
+                                Write-Host "PRM ADAPTER FOUND: $($x)"
+                                $PRMAdapter= "True"
+                            } else {
+                                Write-Host "Other Integration Identified: $($x)"
+                            }  #> 
+                        } 
+
+                    }
 
                 # NEW RELIC #
                 Write-Host "New Relic" -ForegroundColor Red
@@ -977,31 +994,48 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     Write-Host "Integrations" -ForegroundColor Red
                     $PPAdapter = "False"
                     $PRMAdapter = "False"
+
                     $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
-                        param ($database)
-                        if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($database)\*") {
-                            Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($database)\*" | Select-Object -Property PSChildName
+                        if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*") {
+
+                            $databaseNames = Get-ChildItem -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*" -Name 
+        
+                            $mainDatabase = ""
+                            foreach ($db in $databaseNames) {
+                                if (($db -like "*SANDBOX1") -or ($db -like "*TEST*")) {
+                                    $mainDatabase = $db
+                                }
+                            }
+
+                            Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($mainDatabase)\*" | Select-Object -Property PSChildName
+                        
                         } else {
                             return 0
                         }
-                    } -ArgumentList $sandboxDatabase
-        
+                    }
+
+                    
                     if ($integrations -eq 0) {
-                        Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($sandboxDatabase)\'"
+
+                        Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations'"
+
                     } else {
+
                         Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
+                        
                         foreach ($x in $integrations.PSChildName) {
-                            if ($x -like "*ProjectPlace*") {
+                          <#  if ($x -like "*ProjectPlace*") {
                                 Write-Host "PP ADAPTER FOUND: $($x)"
                                 $PPAdapter = "True"
                             }
                             elseif ($x -like "*PRM_Adapter*") {
-                                Write-Host "LK ADAPTER FOUND: $($x)"
+                                Write-Host "PRM ADAPTER FOUND: $($x)"
                                 $PRMAdapter= "True"
                             } else {
                                 Write-Host "Other Integration Identified: $($x)"
-                            }
-                        }
+                            }  #> 
+                        } 
+
                     }
                     
                     <# EXCEL LOGIC AND VARIABLES#>
@@ -1606,34 +1640,51 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
         
                 <# INTEGRATIONS #>
                 Write-Host "Integrations" -ForegroundColor Red
-                $PPAdapter = "False"
-                $PRMAdapter = "False"
-                $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
-                    param ($database)
-                    if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($database)\*") {
-                        Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($database)\*" | Select-Object -Property PSChildName
-                    } else {
-                        return 0
-                    }
-                } -ArgumentList $sandboxDatabase
+                    $PPAdapter = "False"
+                    $PRMAdapter = "False"
+
+                    $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
+                        if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*") {
+
+                            $databaseNames = Get-ChildItem -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*" -Name 
         
-                if ($integrations -eq 0) {
-                    Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($sandboxDatabase)\'"
-                } else {
-                    Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
-                    foreach ($x in $integrations.PSChildName) {
-                        if ($x -like "*ProjectPlace*") {
-                            Write-Host "PP ADAPTER FOUND: $($x)"
-                            $PPAdapter = "True"
-                        }
-                        elseif ($x -like "*PRM_Adapter*") {
-                            Write-Host "LK ADAPTER FOUND: $($x)"
-                            $PRMAdapter= "True"
+                            $mainDatabase = ""
+                            foreach ($db in $databaseNames) {
+                                if (($db -like "*SANDBOX1") -or ($db -like "*TEST*")) {
+                                    $mainDatabase = $db
+                                }
+                            }
+
+                            Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($mainDatabase)\*" | Select-Object -Property PSChildName
+                        
                         } else {
-                            Write-Host "Other Integration Identified: $($x)"
+                            return 0
                         }
                     }
-                }
+
+                    
+                    if ($integrations -eq 0) {
+
+                        Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations'"
+
+                    } else {
+
+                        Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
+                        
+                        foreach ($x in $integrations.PSChildName) {
+                          <#  if ($x -like "*ProjectPlace*") {
+                                Write-Host "PP ADAPTER FOUND: $($x)"
+                                $PPAdapter = "True"
+                            }
+                            elseif ($x -like "*PRM_Adapter*") {
+                                Write-Host "PRM ADAPTER FOUND: $($x)"
+                                $PRMAdapter= "True"
+                            } else {
+                                Write-Host "Other Integration Identified: $($x)"
+                            }  #> 
+                        } 
+
+                    }
         
                 # NEW RELIC #
                 Write-Host "New Relic" -ForegroundColor Red
