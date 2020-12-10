@@ -11,7 +11,6 @@ $excel = New-Object -ComObject Excel.Application
 $excelfile = $excel.Workbooks.Open($excelFilePath)
 $buildData = $excelfile.sheets.item("MasterConfig")
 
-
 <# COMMON FIELDS #>
 # AWS BUILD #
 $buildData.Cells.Item(18,2)= "False" 
@@ -30,7 +29,6 @@ $buildData.Cells.Item(14,2)= $AD_OU.Name
 
 # SAASINFO LINK #
 $buildData.Cells.Item(3,2)= "http://saasinfo.planview.world/$($customerName.Split(':')[0]).htm"
-
 
 <# MAIN LOOP #>
 for ($x=0; $x -lt $environmentsMaster.Length; $x++) {

@@ -4,7 +4,6 @@ $admin = "rreyes"
 <# STUFFER PATH #>
 $stufferDirectory = $MyInvocation.MyCommand.Path | Split-Path
 
-
 <# TO LOCATION #>
 $stufferType = Read-Host "Where is the environment located: 1-AWS or 2-US/EU"
 

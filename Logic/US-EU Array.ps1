@@ -51,6 +51,5 @@ foreach ($e in $environments){
 
 } 
 
-
 <# TO 'Logic' #>
 . "$($stufferDirectory)\Logic\TEMPORARY\Excel Logic.ps1" $environmentsMaster $aAdmin $customerCode $dataCenterLocation $AD_OU $customerName $credentials
