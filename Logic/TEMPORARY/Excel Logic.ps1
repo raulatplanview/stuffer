@@ -134,8 +134,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                         Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
                         
-                        foreach ($x in $integrations.PSChildName) {
-                          <#  if ($x -like "*ProjectPlace*") {
+                    <#     foreach ($x in $integrations.PSChildName) {
+                           if ($x -like "*ProjectPlace*") {
                                 Write-Host "PP ADAPTER FOUND: $($x)"
                                 $PPAdapter = "True"
                             }
@@ -144,8 +144,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                                 $PRMAdapter= "True"
                             } else {
                                 Write-Host "Other Integration Identified: $($x)"
-                            }  #> 
-                        } 
+                            }  
+                        } #>
 
                     }
                     
@@ -801,8 +801,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                         Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
                         
-                        foreach ($x in $integrations.PSChildName) {
-                          <#  if ($x -like "*ProjectPlace*") {
+                    <#     foreach ($x in $integrations.PSChildName) {
+                           if ($x -like "*ProjectPlace*") {
                                 Write-Host "PP ADAPTER FOUND: $($x)"
                                 $PPAdapter = "True"
                             }
@@ -811,8 +811,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                                 $PRMAdapter= "True"
                             } else {
                                 Write-Host "Other Integration Identified: $($x)"
-                            }  #> 
-                        } 
+                            }  
+                        } #>
 
                     }
 
@@ -1023,8 +1023,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                         Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
                         
-                        foreach ($x in $integrations.PSChildName) {
-                          <#  if ($x -like "*ProjectPlace*") {
+                    <#     foreach ($x in $integrations.PSChildName) {
+                           if ($x -like "*ProjectPlace*") {
                                 Write-Host "PP ADAPTER FOUND: $($x)"
                                 $PPAdapter = "True"
                             }
@@ -1033,8 +1033,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                                 $PRMAdapter= "True"
                             } else {
                                 Write-Host "Other Integration Identified: $($x)"
-                            }  #> 
-                        } 
+                            }  
+                        } #>
 
                     }
                     
@@ -1673,8 +1673,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                         Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
                         
-                        foreach ($x in $integrations.PSChildName) {
-                          <#  if ($x -like "*ProjectPlace*") {
+                    <#     foreach ($x in $integrations.PSChildName) {
+                           if ($x -like "*ProjectPlace*") {
                                 Write-Host "PP ADAPTER FOUND: $($x)"
                                 $PPAdapter = "True"
                             }
@@ -1683,8 +1683,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                                 $PRMAdapter= "True"
                             } else {
                                 Write-Host "Other Integration Identified: $($x)"
-                            }  #> 
-                        } 
+                            }  
+                        } #>
 
                     }
         
