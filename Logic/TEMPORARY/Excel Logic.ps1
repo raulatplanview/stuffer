@@ -133,6 +133,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     } else {
 
                         Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
+
+                        $integrations | get-member
                         
                     <#     foreach ($x in $integrations.PSChildName) {
                            if ($x -like "*ProjectPlace*") {
@@ -269,6 +271,21 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\WebServerPlatform"
                 }
                 Write-Host $crVersion.CrVersion
+
+                <# CUSTOM LOGOS #>
+                Write-Host "Custom Logos" -ForegroundColor Red
+                $logoFiles = Invoke-Command -ComputerName "$($environmentsMaster[$x][$y][0].Name)" -Credential $credentials -ScriptBlock {
+                    Get-ChildItem -Path "F:\Planview\MidTier\WebServer\images\logos"
+                }
+                if ($logoFiles.Length -notlike 6) {
+
+                    Write-host "Custom logos: FOUND"
+
+                } else {
+
+                    Write-host "Custom logos: NOT FOUND"
+                
+                }
 
                 <# MAJOR VERSION #>
                 Write-Host "Major Version" -ForegroundColor Red
@@ -745,6 +762,21 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 }
                 Write-Host $crVersion.CrVersion
 
+                <# CUSTOM LOGOS #>
+                Write-Host "Custom Logos" -ForegroundColor Red
+                $logoFiles = Invoke-Command -ComputerName "$($environmentsMaster[$x][$y][0].Name)" -Credential $credentials -ScriptBlock {
+                    Get-ChildItem -Path "F:\Planview\MidTier\WebServer\images\logos"
+                }
+                if ($logoFiles.Length -notlike 6) {
+
+                    Write-host "Custom logos: FOUND"
+
+                } else {
+
+                    Write-host "Custom logos: NOT FOUND"
+                
+                }
+
                 <# MAJOR VERSION #>
                 Write-Host "Major Version" -ForegroundColor Red
                 $majorVersion = $crVersion.CrVersion.Split('.')[0]
@@ -1156,6 +1188,21 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\WebServerPlatform"
                 }
                 Write-Host $crVersion.CrVersion
+
+                <# CUSTOM LOGOS #>
+                Write-Host "Custom Logos" -ForegroundColor Red
+                $logoFiles = Invoke-Command -ComputerName "$($environmentsMaster[$x][$y][0].Name)" -Credential $credentials -ScriptBlock {
+                    Get-ChildItem -Path "F:\Planview\MidTier\WebServer\images\logos"
+                }
+                if ($logoFiles.Length -notlike 6) {
+
+                    Write-host "Custom logos: FOUND"
+
+                } else {
+
+                    Write-host "Custom logos: NOT FOUND"
+                
+                }
         
                 <# MAJOR VERSION #>
                 Write-Host "Major Version" -ForegroundColor Red
@@ -1616,6 +1663,21 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\WebServerPlatform"
                 }
                 Write-Host $crVersion.CrVersion
+
+                <# CUSTOM LOGOS #>
+                Write-Host "Custom Logos" -ForegroundColor Red
+                $logoFiles = Invoke-Command -ComputerName "$($environmentsMaster[$x][$y][0].Name)" -Credential $credentials -ScriptBlock {
+                    Get-ChildItem -Path "F:\Planview\MidTier\WebServer\images\logos"
+                }
+                if ($logoFiles.Length -notlike 6) {
+
+                    Write-host "Custom logos: FOUND"
+
+                } else {
+
+                    Write-host "Custom logos: NOT FOUND"
+                
+                }
         
                 <# MAJOR VERSION #>
                 Write-Host "Major Version" -ForegroundColor Red
