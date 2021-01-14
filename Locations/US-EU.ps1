@@ -5,7 +5,6 @@ $credentials = Get-Credential "Planview\$($aAdmin)"
 $vSphereCredentials = New-Object System.Management.Automation.PSCredential ($aAdmin, $credentials.Password)
 $f5Credentials = $vSphereCredentials
 
-
 <# SETTING REGIONAL OPTIONS #>
 switch($option) {
 
@@ -32,6 +31,7 @@ switch($option) {
 <# COLLECTING AD OBJECTS #>
 Write-Host "Connecting to Active Directory..." -ForegroundColor Gray
 $AD_OU = Get-ADOrganizationalUnit -Filter { Name -like $customerName } -Server $ad_server
+$AD_OU
 $distinguishedNames = (Get-ADComputer -Filter * -SearchBase "$($AD_OU.DistinguishedName)" -Server $ad_server).DistinguishedName
 
 <# SETTING ENVIRONMENTS/SERVERS #>
