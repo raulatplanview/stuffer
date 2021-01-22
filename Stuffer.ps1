@@ -18,5 +18,5 @@ else {
     $customerName = Read-Host "Enter the customer OU name"
     $customerCode = Read-Host "Enter the customer code"
 
-    . "$($stufferDirectory)\Locations\US-EU.ps1" $stufferDirectory $admin $option $customerName $customerCode
+    . "$($stufferDirectory)\Locations\US-EU.ps1" 
 }
