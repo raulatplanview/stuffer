@@ -65,4 +65,4 @@ foreach ($server in $distinguishedNames) {
 }
 
 <# TO 'Logic' #>
-. "$($stufferDirectory)\Logic\US-EU Array.ps1" $environments $ad_server $dataCenterLocation $reportFarm $f5ip $f5Credentials $vSphereCredentials $vSphereServer $aAdmin $customerCode $AD_OU $customerName $credentials
+. "$($stufferDirectory)\Logic\US-EU Array.ps1" 

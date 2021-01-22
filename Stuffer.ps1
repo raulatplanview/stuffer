@@ -12,7 +12,7 @@ if ($stufferType -eq 1) {
     $customerCode = Read-Host "Enter the customer code"
     $option = Read-Host "Select a region: 1-Frankfurt or 2-Sydney"
 
-    . "$($stufferDirectory)\Locations\AWS.ps1" $stufferDirectory $admin $customerCode $option
+    . "$($stufferDirectory)\Locations\AWS.ps1" 
 
 }
 else {
@@ -21,5 +21,5 @@ else {
     $customerName = Read-Host "Enter the customer OU name"
     $customerCode = Read-Host "Enter the customer code"
 
-    . "$($stufferDirectory)\Locations\US-EU.ps1" $stufferDirectory $admin $option $customerName $customerCode
+    . "$($stufferDirectory)\Locations\US-EU.ps1" 
 }
