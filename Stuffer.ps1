@@ -2,6 +2,7 @@
 $stufferDirectory = $MyInvocation.MyCommand.Path | Split-Path
 
 <# PRIMARY CUSTOMER INFORMATION #>
+$type = Read-Host "Select a build type: 1-InPlace 2-New Build/Upgrade"
 $option = Read-Host "Select a region: 1-SG or 2-LN"
 $customerName = Read-Host "Enter the customer OU name"
 $customerCode = Read-Host "Enter the customer code"

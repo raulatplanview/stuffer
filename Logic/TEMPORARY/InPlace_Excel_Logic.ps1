@@ -1540,7 +1540,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 $buildData.Cells.Item(28,2)= $database_custom_models.Count
                 $modelCount = 0;
                 foreach ($model in $database_custom_models.olap_obj_name){
-                    $buildData.Cells.Item(91, (2 + $modelCount))= $model
+                    $buildData.Cells.Item(92, (2 + $modelCount))= $model
                     $modelCount++
                 }
         
