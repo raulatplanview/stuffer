@@ -1,7 +1,8 @@
 <# SETTING CREDENTIALS #>
-Write-Host "Sign-in with your 'Planview\<a-admin>' account:" -ForegroundColor Magenta
-$aAdmin = "a-$($admin)"
-$credentials = Get-Credential "Planview\$($aAdmin)"
+Write-Host "Using Administrator Credentials." -ForegroundColor Magenta
+Write-Host "Use 'Set-AdminCredentials' command to update credentials if your a-admin password has changed recently." -ForegroundColor Magenta
+$aAdmin = ((Get-AdminCredential).UserName).substring(9)
+$credentials = Get-AdminCredential
 $vSphereCredentials = New-Object System.Management.Automation.PSCredential ($aAdmin, $credentials.Password)
 $f5Credentials = $vSphereCredentials
 
