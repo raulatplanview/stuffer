@@ -52,9 +52,9 @@ foreach ($e in $environments){
 } 
 
 <# TO 'Logic' #>
-if ($type = 1){
+if ($type -eq 1){
     . "$($stufferDirectory)\Logic\TEMPORARY\InPlace_Excel_Logic.ps1"
 }
-if ($type = 2){
+if ($type -eq 2){
     . "$($stufferDirectory)\Logic\TEMPORARY\NewLogo_Upgrade_Excel_Logic.ps1"
 }
