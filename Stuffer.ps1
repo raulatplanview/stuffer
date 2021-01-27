@@ -8,4 +8,3 @@ $customerCode = Read-Host "Enter the customer code"
 
 . "$($stufferDirectory)\Locations\US-EU.ps1" 
 
-
