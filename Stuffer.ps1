@@ -1,6 +1,3 @@
-<# ADMIN #>
-#$admin = ((Get-AdminCredential).UserName).substring(9)
-
 <# STUFFER PATH #>
 $stufferDirectory = $MyInvocation.MyCommand.Path | Split-Path
 
