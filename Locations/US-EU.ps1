@@ -10,7 +10,7 @@ $f5Credentials = $vSphereCredentials
 switch($option) {
 
     1 {
-        $ad_server = "SGCVMADC14.us.planview.world";
+        $ad_server = "us.planview.world";
         $vSphereServer = "sgivmvcsvr06.us.planview.world"; 
         $dataCenterLocation = "sg"; 
         $reportFarm = "https://usreportfarm03.pvcloud.com/ReportServer";
@@ -19,7 +19,7 @@ switch($option) {
     } 
 
     2 {
-        $ad_server = "LNCVMADC05.eu.planview.world"; 
+        $ad_server = "eu.planview.world"; 
         $vSphereServer = "lnivmvcsvr06.eu.planview.world"; 
         $dataCenterLocation = "ln"; 
         $reportFarm = "https://eureportfarm03.pvcloud.com/ReportServer";
