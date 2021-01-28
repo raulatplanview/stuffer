@@ -35,10 +35,10 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
     
     if ($environmentsMaster[$x][0] -eq "Production") { 
         Write-Host ":::::::: $($environmentsMaster[$x][0]) Environment ::::::::" -Foregroundcolor Yellow
-        
+
+        $webServerCount = 0
         for ($y=1; $y -lt $environmentsMaster[$x].Length; $y++) {     
             
-            $webServerCount = 0
             if ($environmentsMaster[$x][$y][0].Name.Substring(($environmentsMaster[$x][$y][0].Name.Length - 5), 3) -eq "app") {
             
                 ##########################
@@ -915,8 +915,6 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
                 Write-Host "`n" -ForegroundColor Red  
             }
-            
-        
 
         }
 
@@ -925,9 +923,9 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
     if ($environmentsMaster[$x][0] -eq "Sandbox") { 
         Write-Host ":::::::: $($environmentsMaster[$x][0]) Environment ::::::::" -Foregroundcolor Yellow
         
+        $webServerCount = 0
         for ($y=1; $y -lt $environmentsMaster[$x].Length; $y++) {        
-
-            $webServerCount = 0         
+        
             if ($environmentsMaster[$x][$y][0].Name.Substring(($environmentsMaster[$x][$y][0].Name.Length - 5), 3) -eq "app") {
         
                 #######################
