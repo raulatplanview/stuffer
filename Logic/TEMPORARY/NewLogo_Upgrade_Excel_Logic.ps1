@@ -675,7 +675,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 $databaseCount = 0
                 foreach ($database in $all_databases) {
                     $buildData.Cells.Item(105, (2 + $databaseCount))= $database.name
-                    $buildData.Cells.Item(106, (2 + $databaseCount))= "Size: $($database.Size_MB) MB"
+                    $buildData.Cells.Item(106, (2 + $databaseCount))= $database.Size_MB
                     $databaseCount++
                 }
 
@@ -1545,7 +1545,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 $databaseCount = 0
                 foreach ($database in $all_databases) {
                     $buildData.Cells.Item(107, (2 + $databaseCount))= $database.name
-                    $buildData.Cells.Item(108, (2 + $databaseCount))= "Size: $($database.Size_MB) MB"
+                    $buildData.Cells.Item(108, (2 + $databaseCount))= $database.Size_MB
                     $databaseCount++
                 }
         
