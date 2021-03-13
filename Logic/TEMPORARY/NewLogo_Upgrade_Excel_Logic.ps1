@@ -101,51 +101,85 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     }
                     Write-Host "OpenSuite Detected: $($opensuite)"
 
-                    <# INTEGRATIONS #>
-                    Write-Host "Integrations" -ForegroundColor Red
-                    $PPAdapter = "False"
+                    <# CONNECTORS #>
+                    Write-Host "Connectors" -ForegroundColor Red
                     $PRMAdapter = "False"
+                    $PPAdapter = "False"
+                    $LKAdapter = "False"
 
-                    $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
-                        if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*") {
+                    $PRMini = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
 
-                            $databaseNames = Get-ChildItem -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*" -Name 
-        
-                            $mainDatabase = ""
-                            foreach ($db in $databaseNames) {
-                                if (($db -like "*PROD") -or ($db -like "*DEV*")) {
-                                    $mainDatabase = $db
-                                }
+                        if (Test-Path -Path "F:\Planview\midtier\webserver\objects\PRM_Adapter_Config.ini" -PathType leaf){
+
+                            $PRMiniContent = (Get-Content -Path "F:\Planview\midtier\webserver\objects\PRM_Adapter_Config.ini" | Where-Object {$_.length -ne 0}) | Where-Object {$_.substring(0,1) -ne ";"}
+
+                            $masterArray = @()
+                            $databaseName = ""
+                            foreach($x in $PRMiniContent){
+
+                                $valuePair = New-Object PSObject
+                                Add-Member -InputObject $valuePair -MemberType NoteProperty -Name Database -Value ""
+                                Add-Member -InputObject $valuePair -MemberType NoteProperty -Name Key -Value ""
+
+                                if ($x -match "^\["){
+
+                                    $databaseName = $x.substring(1, ($x.length - 2)) 
+
+                                    $valuePair.Database = $databaseName
+                                    $valuePair.Key = $databaseName
+                                    $masterArray += $valuePair
+                                
+                                
+                                } else {       
+                                
+                                    $valuePair.Database = $databaseName
+                                    $valuePair.Key = $x 
+                                    $masterArray += $valuePair
+                                
+                                }           
                             }
-
-                            Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($mainDatabase)\*" | Select-Object -Property PSChildName
+                        
+                            return $masterArray
                         
                         } else {
+
                             return 0
+
                         }
                     }
 
-                    
-                    if ($integrations -eq 0) {
+                    if ($PRMini -ne '0'){
 
-                        Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations'"
+                        $PRMAdapter = "True"
+
+                        Write-Host "PRM Adapter Found"
+                        $LKKey = ($PRMini | Where-Object {$_.Database -like "*PROD"} | Where-Object {$_.Key -like "use_prm_leankit*"}).Key
+                        $PPKey = ($PRMini | Where-Object {$_.Database -like "*PROD"} | Where-Object {$_.Key -like "use_prm_projectplace*"}).Key
+
+                        if ($LKKey -like "*true*"){
+                            $LKAdapter = "True"
+                            Write-Host "LeanKit Connector --- True"
+                        } else {
+                            Write-Host "LeanKit Connector --- False"
+                        }
+
+                        if ($PPKey -like "*true*"){
+                            $PPAdapter = "True"
+                            Write-Host "ProjectPlace Connector --- True"
+                        } else {
+                            Write-Host "ProjectPlace Connector --- False"
+                        }
 
                     } else {
 
-                        Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
-                        
-                    <#     foreach ($x in $integrations.PSChildName) {
-                           if ($x -like "*ProjectPlace*") {
-                                Write-Host "PP ADAPTER FOUND: $($x)"
-                                $PPAdapter = "True"
-                            }
-                            elseif ($x -like "*PRM_Adapter*") {
-                                Write-Host "PRM ADAPTER FOUND: $($x)"
-                                $PRMAdapter= "True"
-                            } else {
-                                Write-Host "Other Integration Identified: $($x)"
-                            }  
-                        } #>
+                        Write-Host "PRM Adapter not found"
+
+                        $LegacyPPAdapter = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
+                            Test-Path -Path "F:\Planview\midtier\webserver\objects\ProjectPlace_Config.ini" -PathType leaf
+                        }
+
+                        $PPAdapter = $LegacyPPAdapter
+                        Write-Host "ProjectPlace (Legacy install) --- $($PPAdapter)"
 
                     }
                     
@@ -159,7 +193,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     $buildData.Cells.Item(58,7)= $task_array
 
                     $buildData.Cells.Item(37,2)= $PPAdapter
-                    $buildData.Cells.Item(38,2)= $PRMAdapter
+                    $buildData.Cells.Item(38,2)= $LKAdapter
+                    $buildData.Cells.Item(43,2)= $PRMAdapter
 
                     $buildData.Cells.Item(42,2)= $opensuite
 
@@ -475,6 +510,14 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     $task_array += "$($task.TaskName)`n"
                 }
 
+                <# MAINTENANCE DAY #>
+                Write-Host "Maintenance Day" -ForegroundColor Red
+                $maintenanceDay = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
+                    (Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Planview IT MGUPD").DisplayName
+                }
+                $maintenanceDay = $maintenanceDay.substring(($maintenanceDay.length - 4))
+                Write-Host $maintenanceDay
+
                 <# DATABASE PROPERTIES #>
                 Write-Host "Database Properties" -ForegroundColor Red
                 $sqlSession = New-PSSession -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials
@@ -690,6 +733,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 $buildData.Cells.Item(28,2)= $totalLicenseCount
                 $buildData.Cells.Item(46,2)= $cost_threshold.value            
                 $buildData.Cells.Item(45,2)= $maxdop.value
+                $buildData.Cells.Item(111,2)= $maintenanceDay
                 
                 Remove-PSSession -Session $sqlSession
 
@@ -768,53 +812,87 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 }
                 Write-Host "OpenSuite Detected: $($opensuite)"
 
-                <# INTEGRATIONS #>
-                Write-Host "Integrations" -ForegroundColor Red
-                    $PPAdapter = "False"
-                    $PRMAdapter = "False"
-
-                    $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
-                        if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*") {
-
-                            $databaseNames = Get-ChildItem -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*" -Name 
-        
-                            $mainDatabase = ""
-                            foreach ($db in $databaseNames) {
-                                if (($db -like "*PROD") -or ($db -like "*DEV*")) {
-                                    $mainDatabase = $db
-                                }
-                            }
-
-                            Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($mainDatabase)\*" | Select-Object -Property PSChildName
-                        
-                        } else {
-                            return 0
-                        }
-                    }
-
-                    
-                    if ($integrations -eq 0) {
-
-                        Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations'"
-
-                    } else {
-
-                        Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
-                        
-                    <#     foreach ($x in $integrations.PSChildName) {
-                           if ($x -like "*ProjectPlace*") {
-                                Write-Host "PP ADAPTER FOUND: $($x)"
-                                $PPAdapter = "True"
-                            }
-                            elseif ($x -like "*PRM_Adapter*") {
-                                Write-Host "PRM ADAPTER FOUND: $($x)"
-                                $PRMAdapter= "True"
-                            } else {
-                                Write-Host "Other Integration Identified: $($x)"
-                            }  
-                        } #>
-
-                    }
+                 <# CONNECTORS #>
+                 Write-Host "Connectors" -ForegroundColor Red
+                 $PRMAdapter = "False"
+                 $PPAdapter = "False"
+                 $LKAdapter = "False"
+ 
+                 $PRMini = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
+ 
+                     if (Test-Path -Path "F:\Planview\midtier\webserver\objects\PRM_Adapter_Config.ini" -PathType leaf){
+ 
+                         $PRMiniContent = (Get-Content -Path "F:\Planview\midtier\webserver\objects\PRM_Adapter_Config.ini" | Where-Object {$_.length -ne 0}) | Where-Object {$_.substring(0,1) -ne ";"}
+ 
+                         $masterArray = @()
+                         $databaseName = ""
+                         foreach($x in $PRMiniContent){
+ 
+                             $valuePair = New-Object PSObject
+                             Add-Member -InputObject $valuePair -MemberType NoteProperty -Name Database -Value ""
+                             Add-Member -InputObject $valuePair -MemberType NoteProperty -Name Key -Value ""
+ 
+                             if ($x -match "^\["){
+ 
+                                 $databaseName = $x.substring(1, ($x.length - 2)) 
+ 
+                                 $valuePair.Database = $databaseName
+                                 $valuePair.Key = $databaseName
+                                 $masterArray += $valuePair
+                             
+                             
+                             } else {       
+                             
+                                 $valuePair.Database = $databaseName
+                                 $valuePair.Key = $x 
+                                 $masterArray += $valuePair
+                             
+                             }           
+                         }
+                     
+                         return $masterArray
+                     
+                     } else {
+ 
+                         return 0
+ 
+                     }
+                 }
+ 
+                 if ($PRMini -ne '0'){
+ 
+                     $PRMAdapter = "True"
+ 
+                     Write-Host "PRM Adapter Found"
+                     $LKKey = ($PRMini | Where-Object {$_.Database -like "*PROD"} | Where-Object {$_.Key -like "use_prm_leankit*"}).Key
+                     $PPKey = ($PRMini | Where-Object {$_.Database -like "*PROD"} | Where-Object {$_.Key -like "use_prm_projectplace*"}).Key
+ 
+                     if ($LKKey -like "*true*"){
+                         $LKAdapter = "True"
+                         Write-Host "LeanKit Connector --- True"
+                     } else {
+                         Write-Host "LeanKit Connector --- False"
+                     }
+ 
+                     if ($PPKey -like "*true*"){
+                         $PPAdapter = "True"
+                         Write-Host "ProjectPlace Connector --- True"
+                     } else {
+                         Write-Host "ProjectPlace Connector --- False"
+                     }
+ 
+                 } else {
+ 
+                     Write-Host "PRM Adapter not found"
+ 
+                     $LegacyPPAdapter = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
+                         Test-Path -Path "F:\Planview\midtier\webserver\objects\ProjectPlace_Config.ini" -PathType leaf
+                     }
+ 
+                     $PPAdapter = $LegacyPPAdapter
+                     Write-Host "ProjectPlace (Legacy install) --- $($PPAdapter)"
+ 
+                 }
 
                 # NEW RELIC #
                 Write-Host "New Relic" -ForegroundColor Red
@@ -902,7 +980,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 
 
                 $buildData.Cells.Item(37,2)= $PPAdapter
-                $buildData.Cells.Item(38,2)= $PRMAdapter
+                $buildData.Cells.Item(38,2)= $LKAdapter
+                $buildData.Cells.Item(43,2)= $PRMAdapter
                 
             
 
@@ -988,51 +1067,85 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     }
                     Write-Host "OpenSuite Detected: $($opensuite)"
         
-                    <# INTEGRATIONS #>
-                    Write-Host "Integrations" -ForegroundColor Red
-                    $PPAdapter = "False"
+                     <# CONNECTORS #>
+                    Write-Host "Connectors" -ForegroundColor Red
                     $PRMAdapter = "False"
+                    $PPAdapter = "False"
+                    $LKAdapter = "False"
 
-                    $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
-                        if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*") {
+                    $PRMini = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
 
-                            $databaseNames = Get-ChildItem -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*" -Name 
-        
-                            $mainDatabase = ""
-                            foreach ($db in $databaseNames) {
-                                if (($db -like "*SANDBOX1") -or ($db -like "*TEST*")) {
-                                    $mainDatabase = $db
-                                }
+                        if (Test-Path -Path "F:\Planview\midtier\webserver\objects\PRM_Adapter_Config.ini" -PathType leaf){
+
+                            $PRMiniContent = (Get-Content -Path "F:\Planview\midtier\webserver\objects\PRM_Adapter_Config.ini" | Where-Object {$_.length -ne 0}) | Where-Object {$_.substring(0,1) -ne ";"}
+
+                            $masterArray = @()
+                            $databaseName = ""
+                            foreach($x in $PRMiniContent){
+
+                                $valuePair = New-Object PSObject
+                                Add-Member -InputObject $valuePair -MemberType NoteProperty -Name Database -Value ""
+                                Add-Member -InputObject $valuePair -MemberType NoteProperty -Name Key -Value ""
+
+                                if ($x -match "^\["){
+
+                                    $databaseName = $x.substring(1, ($x.length - 2)) 
+
+                                    $valuePair.Database = $databaseName
+                                    $valuePair.Key = $databaseName
+                                    $masterArray += $valuePair
+                                
+                                
+                                } else {       
+                                
+                                    $valuePair.Database = $databaseName
+                                    $valuePair.Key = $x 
+                                    $masterArray += $valuePair
+                                
+                                }           
                             }
-
-                            Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($mainDatabase)\*" | Select-Object -Property PSChildName
+                        
+                            return $masterArray
                         
                         } else {
+
                             return 0
+
                         }
                     }
 
-                    
-                    if ($integrations -eq 0) {
+                    if ($PRMini -ne '0'){
 
-                        Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations'"
+                        $PRMAdapter = "True"
+
+                        Write-Host "PRM Adapter Found"
+                        $LKKey = ($PRMini | Where-Object {$_.Database -like "*SANDBOX*"} | Where-Object {$_.Key -like "use_prm_leankit*"}).Key
+                        $PPKey = ($PRMini | Where-Object {$_.Database -like "*SANDBOX*"} | Where-Object {$_.Key -like "use_prm_projectplace*"}).Key
+
+                        if ($LKKey -like "*true*"){
+                            $LKAdapter = "True"
+                            Write-Host "LeanKit Connector --- True"
+                        } else {
+                            Write-Host "LeanKit Connector --- False"
+                        }
+
+                        if ($PPKey -like "*true*"){
+                            $PPAdapter = "True"
+                            Write-Host "ProjectPlace Connector --- True"
+                        } else {
+                            Write-Host "ProjectPlace Connector --- False"
+                        }
 
                     } else {
 
-                        Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
-                        
-                    <#     foreach ($x in $integrations.PSChildName) {
-                           if ($x -like "*ProjectPlace*") {
-                                Write-Host "PP ADAPTER FOUND: $($x)"
-                                $PPAdapter = "True"
-                            }
-                            elseif ($x -like "*PRM_Adapter*") {
-                                Write-Host "PRM ADAPTER FOUND: $($x)"
-                                $PRMAdapter= "True"
-                            } else {
-                                Write-Host "Other Integration Identified: $($x)"
-                            }  
-                        } #>
+                        Write-Host "PRM Adapter not found"
+
+                        $LegacyPPAdapter = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
+                            Test-Path -Path "F:\Planview\midtier\webserver\objects\ProjectPlace_Config.ini" -PathType leaf
+                        }
+
+                        $PPAdapter = $LegacyPPAdapter
+                        Write-Host "ProjectPlace (Legacy install) --- $($PPAdapter)"
 
                     }
                     
@@ -1045,7 +1158,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     $buildData.Cells.Item(78,7)= $task_array
         
                     $buildData.Cells.Item(37,3)= $PPAdapter
-                    $buildData.Cells.Item(38,3)= $PRMAdapter
+                    $buildData.Cells.Item(38,3)= $LKAdapter
+                    $buildData.Cells.Item(43,3)= $PRMAdapter
                     
                     $buildData.Cells.Item(42,3)= $opensuite
         
@@ -1344,6 +1458,14 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                     Write-Host "Task Name: $($task.TaskName)"
                     $task_array += "$($task.TaskName)`n"
                 }
+
+                <# MAINTENANCE DAY #>
+                Write-Host "Maintenance Day" -ForegroundColor Red
+                $maintenanceDay = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
+                    (Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Planview IT MGUPD").DisplayName
+                }
+                $maintenanceDay = $maintenanceDay.substring(($maintenanceDay.length - 4))
+                Write-Host $maintenanceDay
                 
                 <# DATABASE PROPERTIES #>
                 Write-Host "Database Properties" -ForegroundColor Red
@@ -1525,6 +1647,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 $buildData.Cells.Item(50,3)= $database_dbSize.database_size
                 $buildData.Cells.Item(49,3)= $database_memory_max.value
                 $buildData.Cells.Item(48,3)= $database_memory_min.value
+                
         
                 $buildData.Cells.Item(80,2)= "$($environmentsMaster[$x][$y][0].Name)"
                 $buildData.Cells.Item(80,3)= "$($environmentsMaster[$x][$y][0].NumCpu)"
@@ -1532,6 +1655,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 $buildData.Cells.Item(80,5)= $hdStringArray
                 $buildData.Cells.Item(80,6)= $diskResize
                 $buildData.Cells.Item(80,7)= $task_array
+
                 
                 $buildData.Cells.Item(32,3)= $database_progressing_web_version.sub_release
         
@@ -1560,6 +1684,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 $buildData.Cells.Item(28,3)= $totalLicenseCount
                 $buildData.Cells.Item(46,3)= $cost_threshold.value
                 $buildData.Cells.Item(45,3)= $maxdop.value
+                $buildData.Cells.Item(111,3)= $maintenanceDay
         
                 Remove-PSSession -Session $sqlSession
         
@@ -1638,53 +1763,87 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 }
                 Write-Host "OpenSuite Detected: $($opensuite)"
         
-                <# INTEGRATIONS #>
-                Write-Host "Integrations" -ForegroundColor Red
-                    $PPAdapter = "False"
-                    $PRMAdapter = "False"
+                <# CONNECTORS #>
+                Write-Host "Connectors" -ForegroundColor Red
+                $PRMAdapter = "False"
+                $PPAdapter = "False"
+                $LKAdapter = "False"
 
-                    $integrations = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
-                        if (Test-Path -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*") {
+                $PRMini = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
 
-                            $databaseNames = Get-ChildItem -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\*" -Name 
-        
-                            $mainDatabase = ""
-                            foreach ($db in $databaseNames) {
-                                if (($db -like "*SANDBOX1") -or ($db -like "*TEST*")) {
-                                    $mainDatabase = $db
-                                }
-                            }
+                    if (Test-Path -Path "F:\Planview\midtier\webserver\objects\PRM_Adapter_Config.ini" -PathType leaf){
 
-                            Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations\$($mainDatabase)\*" | Select-Object -Property PSChildName
-                        
-                        } else {
-                            return 0
+                        $PRMiniContent = (Get-Content -Path "F:\Planview\midtier\webserver\objects\PRM_Adapter_Config.ini" | Where-Object {$_.length -ne 0}) | Where-Object {$_.substring(0,1) -ne ";"}
+
+                        $masterArray = @()
+                        $databaseName = ""
+                        foreach($x in $PRMiniContent){
+
+                            $valuePair = New-Object PSObject
+                            Add-Member -InputObject $valuePair -MemberType NoteProperty -Name Database -Value ""
+                            Add-Member -InputObject $valuePair -MemberType NoteProperty -Name Key -Value ""
+
+                            if ($x -match "^\["){
+
+                                $databaseName = $x.substring(1, ($x.length - 2)) 
+
+                                $valuePair.Database = $databaseName
+                                $valuePair.Key = $databaseName
+                                $masterArray += $valuePair
+                            
+                            
+                            } else {       
+                            
+                                $valuePair.Database = $databaseName
+                                $valuePair.Key = $x 
+                                $masterArray += $valuePair
+                            
+                            }           
                         }
-                    }
-
                     
-                    if ($integrations -eq 0) {
-
-                        Write-Host "No integrations found in 'HKLM:\SOFTWARE\WOW6432Node\Planview\Integrations'"
-
+                        return $masterArray
+                    
                     } else {
 
-                        Write-Host "Number of integrations found: $($integrations.PSChildName.Count)"
-                        
-                    <#     foreach ($x in $integrations.PSChildName) {
-                           if ($x -like "*ProjectPlace*") {
-                                Write-Host "PP ADAPTER FOUND: $($x)"
-                                $PPAdapter = "True"
-                            }
-                            elseif ($x -like "*PRM_Adapter*") {
-                                Write-Host "PRM ADAPTER FOUND: $($x)"
-                                $PRMAdapter= "True"
-                            } else {
-                                Write-Host "Other Integration Identified: $($x)"
-                            }  
-                        } #>
+                        return 0
 
                     }
+                }
+
+                if ($PRMini -ne '0'){
+
+                    $PRMAdapter = "True"
+
+                    Write-Host "PRM Adapter Found"
+                    $LKKey = ($PRMini | Where-Object {$_.Database -like "*SANDBOX*"} | Where-Object {$_.Key -like "use_prm_leankit*"}).Key
+                    $PPKey = ($PRMini | Where-Object {$_.Database -like "*SANDBOX*"} | Where-Object {$_.Key -like "use_prm_projectplace*"}).Key
+
+                    if ($LKKey -like "*true*"){
+                        $LKAdapter = "True"
+                        Write-Host "LeanKit Connector --- True"
+                    } else {
+                        Write-Host "LeanKit Connector --- False"
+                    }
+
+                    if ($PPKey -like "*true*"){
+                        $PPAdapter = "True"
+                        Write-Host "ProjectPlace Connector --- True"
+                    } else {
+                        Write-Host "ProjectPlace Connector --- False"
+                    }
+
+                } else {
+
+                    Write-Host "PRM Adapter not found"
+
+                    $LegacyPPAdapter = Invoke-Command -ComputerName $environmentsMaster[$x][$y][0].Name -Credential $credentials -ScriptBlock {
+                        Test-Path -Path "F:\Planview\midtier\webserver\objects\ProjectPlace_Config.ini" -PathType leaf
+                    }
+
+                    $PPAdapter = $LegacyPPAdapter
+                    Write-Host "ProjectPlace (Legacy install) --- $($PPAdapter)"
+
+                }
         
                 # NEW RELIC #
                 Write-Host "New Relic" -ForegroundColor Red
@@ -1763,7 +1922,8 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
                 $buildData.Cells.Item(82,7)= $task_array
         
                 $buildData.Cells.Item(37,3)= $PPAdapter
-                $buildData.Cells.Item(38,3)= $PRMAdapter
+                $buildData.Cells.Item(38,3)= $LKAdapter
+                $buildData.Cells.Item(43,3)= $PRMAdapter
         
                 Write-Host "`n" -ForegroundColor Red  
             }
