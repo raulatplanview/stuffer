@@ -33,7 +33,7 @@ $buildData.Cells.Item(5,2)= "http://saasinfo.planview.world/$($customerName.Spli
 <# MAIN LOOP #>
 for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
     
-    if ($environmentsMaster[$x][0] -eq "Production") { 
+    if ($environmentsMaster[$x][0] -eq $slot1) { 
         Write-Host ":::::::: $($environmentsMaster[$x][0]) Environment ::::::::" -Foregroundcolor Yellow
 
         $webServerCount = 0
@@ -999,7 +999,7 @@ for ($x=0; $x -lt $environmentsMaster.Length; $x++) {
 
     } 
     
-    if ($environmentsMaster[$x][0] -eq "Sandbox") { 
+    if ($environmentsMaster[$x][0] -eq $slot2) { 
         Write-Host ":::::::: $($environmentsMaster[$x][0]) Environment ::::::::" -Foregroundcolor Yellow
         
         $webServerCount = 0

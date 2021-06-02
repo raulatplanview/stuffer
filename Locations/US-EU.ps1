@@ -44,7 +44,7 @@ foreach ($server in $distinguishedNames) {
 
         $ouName = $folder.substring(3)
 
-        if ($ouName -like "prod*" -Or $ouName -like "sand*" -Or $ouName -like "pre*") {
+        if ($ouName -like $slot1 -Or $ouName -like $slot2) {
         
             $serverName = $folders[0].substring(3)
 
